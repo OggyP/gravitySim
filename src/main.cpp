@@ -44,6 +44,8 @@ int main() {
 
     const int frameCap = 144;
 
+    long int currentFrame = 0;
+
     int largestPlanetNum = 0;
 
     int planetAmt = 0;
@@ -57,6 +59,10 @@ int main() {
     sf::CircleShape massRadius(100.f);
     massRadius.setFillColor(sf::Color::White);
     sf::VertexArray vectorDraw(sf::LinesStrip, 2);
+    sf::RectangleShape fadeRect;
+    fadeRect.setSize(sf::Vector2f(screenDimensions[0], screenDimensions[1]));
+    fadeRect.setFillColor(sf::Color(0, 0, 0, 10));
+    fadeRect.setPosition(sf::Vector2f(0, 0));
 
     vector <planet> planets;
     for (int i = 0; i < planetAmt; i++) {
@@ -70,7 +76,7 @@ int main() {
     }
     
     cout << largestPlanetNum << endl;
-
+ 
     while (window.isOpen()) {
         sf::Event event;
         while (window.pollEvent(event))
@@ -91,6 +97,8 @@ int main() {
                 newPlanet.cordinates[0] = mouseCord[0] * pixelToSize;
                 newPlanet.cordinates[1] = mouseCord[1] * pixelToSize;
                 while (mouseBtns[0]) {
+                    window.clear();
+
                     newPlanet.mass += newPlanet.mass / frameCap;
                     double newPlanetRadius; 
                     double actualRadius;
@@ -110,6 +118,22 @@ int main() {
                         massRadius.setRadius((float)(massToRadius(newPlanet.mass) / pixelToSize));
                         massRadius.setPosition(sf::Vector2f(newPlanet.cordinates[0] / pixelToSize - actualRadius / pixelToSize, newPlanet.cordinates[1] / pixelToSize - actualRadius / pixelToSize));    
                         window.draw(massRadius);
+                    }
+
+                    // draw all other planets
+                    for (auto currentPlanet : planets) {
+                        if (currentPlanet.isAlive) {
+                            planetShape.setFillColor(sf::Color(currentPlanet.colour[0], currentPlanet.colour[1], currentPlanet.colour[2]));
+                            double planetRadius;
+                            if (currentPlanet.customRadius != 0) {
+                                planetRadius = currentPlanet.customRadius;
+                            } else {
+                                planetRadius = massToRadius(currentPlanet.mass);
+                            }
+                            planetShape.setRadius((float)(planetRadius / pixelToSize));
+                            planetShape.setPosition(sf::Vector2f(currentPlanet.cordinates[0] / pixelToSize - planetRadius / pixelToSize, currentPlanet.cordinates[1] / pixelToSize - planetRadius / pixelToSize));
+                            window.draw(planetShape);
+                        }
                     }
 
                     planetShape.setFillColor(sf::Color(newPlanet.colour[0], newPlanet.colour[1], newPlanet.colour[2]));
@@ -136,6 +160,8 @@ int main() {
                 newPlanet.vector.y = (mouseCord[1] * pixelToSize - newPlanet.cordinates[1]) / frameCap / 2;
 
                 planets.push_back(newPlanet);
+
+                window.clear();
             }
         }
 
@@ -144,7 +170,16 @@ int main() {
             while (sf::Keyboard::isKeyPressed(sf::Keyboard::C)) {};
         }
 
+        if (sf::Keyboard::isKeyPressed(sf::Keyboard::R)) {
+            planets.clear();
+            window.clear();
+        }
+
         if (clearScreen) {
+            if (currentFrame % frameCap == 0 or currentFrame % frameCap == round(frameCap / 2)) {
+                window.draw(fadeRect);
+            }
+        } else {
             window.clear();
         }
 
@@ -182,6 +217,7 @@ int main() {
         }
 
         window.display();
+        currentFrame ++;
     }
 
     return 0;

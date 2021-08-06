@@ -3,7 +3,8 @@
     "*.tpp": "cpp",
     "vector": "cpp",
     "iostream": "cpp",
-    "cmath": "cpp"
+    "cmath": "cpp",
+    "*.tcc": "cpp"
   },
   "terminal.integrated.shell.windows": "cmd.exe",
   "C_Cpp_Runner.cCompilerPath": "/usr/bin/gcc",
