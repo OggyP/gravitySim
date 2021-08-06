@@ -1,3 +1,4 @@
+#Gravity Simulation in C++ & SFML
 This is a C++ and SFML gravity simulation made by Oscar Pritchard. 
 It is using real world numbers for everything. One pixel is currently 800000km but can be changed in the code. 
 The radius is based off the mass of the planets at Earth's density. 
