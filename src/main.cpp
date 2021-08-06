@@ -1,0 +1,188 @@
+#include <iostream>
+#include <vector>
+#include <math.h>
+#include <lib.hpp>
+#include <SFML/Graphics.hpp>
+
+using namespace std;
+
+long double calculateGravitationalForce(double mass1, double mass2, double distance) {
+    const double GravitationalConstant = 6.674*pow(10.0, -11);
+    const double force = GravitationalConstant*(mass1 * mass2 / pow(distance, 2));
+    return force;
+}
+
+movementVector vectorFromPlanets(planet planet1, planet planet2) {
+    movementVector newVector;
+    newVector.x = planet2.cordinates[0] - planet1.cordinates[0];
+    newVector.y = planet2.cordinates[1] - planet1.cordinates[1];
+    return newVector;
+}
+
+movementVector getVectorFromForce(double mass, long double force, double direction) {
+    movementVector newVector;
+    double magnitude = (force / mass) / 1000000 * 31536000;
+    newVector.setVector(direction, magnitude);
+    return newVector;
+}
+
+double massToRadius(double mass) {
+    // 5514 is the Mean density (kg/m3) of earth.
+    // formula for radius of sphere from volume
+    double radius = cbrt(3 * (mass / (5514)) / (3 * M_PI));
+    return radius;
+}
+
+int main() {
+    srand (time(NULL));
+
+    bool clearScreen = true;
+
+    const int screenDimensions[2] = {1500, 1000};
+    const double pixelToSize = 800000;
+    bool mouseBtns[2];
+
+    const int frameCap = 144;
+
+    int largestPlanetNum = 0;
+
+    int planetAmt = 0;
+    cout << "How many planets do you want? ";
+    cin >> planetAmt;
+
+    sf::RenderWindow window(sf::VideoMode(screenDimensions[0], screenDimensions[1]), "OggyP Gravity Sim!");
+    window.setFramerateLimit(frameCap);
+    sf::CircleShape planetShape(100.f);
+    planetShape.setFillColor(sf::Color::Red);
+    sf::CircleShape massRadius(100.f);
+    massRadius.setFillColor(sf::Color::White);
+    sf::VertexArray vectorDraw(sf::LinesStrip, 2);
+
+    vector <planet> planets;
+    for (int i = 0; i < planetAmt; i++) {
+        planet currentPlanet;
+        largestPlanetNum++;
+        currentPlanet.planetID = i;
+        currentPlanet.cordinates[0] = rand() % screenDimensions[0] * pixelToSize;
+        currentPlanet.cordinates[1] = rand() % screenDimensions[1] * pixelToSize;
+        currentPlanet.mass = (rand() % 49 + 1) * pow(10, 24); // 1 to 100 * 10^24 | Earth is 5.9722 * 10^24
+        planets.push_back(currentPlanet);
+    }
+    
+    cout << largestPlanetNum << endl;
+
+    while (window.isOpen()) {
+        sf::Event event;
+        while (window.pollEvent(event))
+        {
+            if (event.type == sf::Event::Closed)
+                window.close();
+        }
+
+        mouseBtns[0] = sf::Mouse::isButtonPressed(sf::Mouse::Left);
+
+        if (mouseBtns[0]) {
+            int mouseCord[2] = {sf::Mouse::getPosition(window).x, sf::Mouse::getPosition(window).y};
+            if (mouseCord[0] >= 0 && mouseCord[0] <= screenDimensions[0] && mouseCord[1] >= 0 && mouseCord[1] <= screenDimensions[1]) {
+                planet newPlanet;
+                newPlanet.planetID = largestPlanetNum;
+                largestPlanetNum++;
+                newPlanet.mass = 1 * pow(10, 24);
+                newPlanet.cordinates[0] = mouseCord[0] * pixelToSize;
+                newPlanet.cordinates[1] = mouseCord[1] * pixelToSize;
+                while (mouseBtns[0]) {
+                    newPlanet.mass += newPlanet.mass / frameCap;
+                    double newPlanetRadius; 
+                    double actualRadius;
+                    bool customRadius = false;
+                    if (newPlanet.customRadius != 0) {
+                        newPlanetRadius = newPlanet.customRadius;
+                        customRadius = true;
+                        actualRadius = massToRadius(newPlanet.mass);
+                    } else {
+                        newPlanetRadius = massToRadius(newPlanet.mass);
+                    }
+                    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Space)) {
+                        newPlanet.customRadius = newPlanetRadius;
+                    }
+
+                    if (customRadius) {
+                        massRadius.setRadius((float)(massToRadius(newPlanet.mass) / pixelToSize));
+                        massRadius.setPosition(sf::Vector2f(newPlanet.cordinates[0] / pixelToSize - actualRadius / pixelToSize, newPlanet.cordinates[1] / pixelToSize - actualRadius / pixelToSize));    
+                        window.draw(massRadius);
+                    }
+
+                    planetShape.setFillColor(sf::Color(newPlanet.colour[0], newPlanet.colour[1], newPlanet.colour[2]));
+                    planetShape.setRadius((float)(newPlanetRadius / pixelToSize));
+                    planetShape.setPosition(sf::Vector2f(newPlanet.cordinates[0] / pixelToSize - newPlanetRadius / pixelToSize, newPlanet.cordinates[1] / pixelToSize - newPlanetRadius / pixelToSize));
+                    window.draw(planetShape);
+
+                    // Drawing vector to show direction of planet
+                    mouseCord[0] = sf::Mouse::getPosition(window).x;
+                    mouseCord[1] = sf::Mouse::getPosition(window).y;
+                    vectorDraw[0].position = sf::Vector2f(mouseCord[0], mouseCord[1]);
+                    vectorDraw[1].position = sf::Vector2f(newPlanet.cordinates[0] / pixelToSize, newPlanet.cordinates[1] / pixelToSize);
+                    window.draw(vectorDraw);
+
+                    window.display();
+
+                    mouseBtns[0] = sf::Mouse::isButtonPressed(sf::Mouse::Left);
+                }
+                // on mouse release
+                mouseCord[0] = sf::Mouse::getPosition(window).x;
+                mouseCord[1] = sf::Mouse::getPosition(window).y;
+
+                newPlanet.vector.x = (mouseCord[0] * pixelToSize - newPlanet.cordinates[0]) / frameCap / 2; //move how far the mouse moved every 5 seconds
+                newPlanet.vector.y = (mouseCord[1] * pixelToSize - newPlanet.cordinates[1]) / frameCap / 2;
+
+                planets.push_back(newPlanet);
+            }
+        }
+
+        if (sf::Keyboard::isKeyPressed(sf::Keyboard::C)) {
+            clearScreen = !clearScreen;
+            while (sf::Keyboard::isKeyPressed(sf::Keyboard::C)) {};
+        }
+
+        if (clearScreen) {
+            window.clear();
+        }
+
+        for (auto &currentPlanet : planets) {
+            if (currentPlanet.isAlive == false) continue; // do not run sim for dead planets
+            double currentPlanetRadius = 0;
+            if (currentPlanet.customRadius != 0) {
+                currentPlanetRadius = currentPlanet.customRadius;
+            } else {
+                currentPlanetRadius = massToRadius(currentPlanet.mass);
+            }
+            for (auto &planetToCheck : planets) {
+                if (planetToCheck.planetID == currentPlanet.planetID || planetToCheck.isAlive == false) continue; // do not calculate for self
+                const float planetToCheckRadius = massToRadius(planetToCheck.mass);
+                movementVector vectorOfPlanets = vectorFromPlanets(currentPlanet, planetToCheck);
+                const double gravitationalForce = calculateGravitationalForce(currentPlanet.mass, planetToCheck.mass, vectorOfPlanets.getMagnitude());
+                movementVector vectorToAdd = getVectorFromForce(currentPlanet.mass, gravitationalForce, vectorOfPlanets.getDirection());
+                currentPlanet.vector.x += vectorToAdd.x;
+                currentPlanet.vector.y += vectorToAdd.y;
+                if (currentPlanetRadius + planetToCheckRadius > vectorOfPlanets.getMagnitude() - vectorToAdd.getMagnitude()) {
+                    if (currentPlanet.mass > planetToCheck.mass) {
+                        currentPlanet.mass += planetToCheck.mass;
+                        planetToCheck.isAlive = false;
+                    }
+                }
+            }
+            planetShape.setRadius((float)(currentPlanetRadius / pixelToSize));
+            planetShape.setFillColor(sf::Color(currentPlanet.colour[0], currentPlanet.colour[1], currentPlanet.colour[2]));
+            planetShape.setPosition(sf::Vector2f(currentPlanet.cordinates[0] / pixelToSize - currentPlanetRadius / pixelToSize, currentPlanet.cordinates[1] / pixelToSize - currentPlanetRadius / pixelToSize));
+            window.draw(planetShape);
+        }
+
+        for (auto &currentPlanet : planets) {
+            currentPlanet.move();
+        }
+
+        window.display();
+    }
+
+    return 0;
+}
