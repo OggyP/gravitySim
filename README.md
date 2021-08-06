@@ -15,4 +15,5 @@ Controls:
     Release the mouse to finish creating the planet.
     
   C:
+  
     Pressing C toggles clearing the screen or not. By default the screen is cleared every frame. This is useful for seeing the orbits of the planets.
