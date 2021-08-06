@@ -30,8 +30,8 @@ Pressing R will reset the simulation. This will delete all the planets and clear
 
 ### Linux
 
-First download SFML. Type `sudo apt-get install libsfml-dev` into terminal.
-Then download the vinary gravity file from releases. Make sure that under the file permissions that the program can be executed.
+First download SFML. For debian distros such and ubuntu, type `sudo apt-get install libsfml-dev` into terminal.
+Then download the gravity binary file from releases. Make sure that under the file permissions that the program can be executed.
 Open terminal and navigate to the directory that the gravity file is downloaded to. Then type `./gravity`.
 The program should now work!
 
