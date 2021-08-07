@@ -38,7 +38,7 @@ int main() {
 
     bool clearScreen = true;
 
-    const int screenDimensions[2] = {1500, 1000};
+    int screenDimensions[2] = {1500, 1000};
     const double pixelToSize = 800000;
     bool mouseBtns[2];
 
@@ -83,6 +83,16 @@ int main() {
         {
             if (event.type == sf::Event::Closed)
                 window.close();
+            // catch the resize events
+            if (event.type == sf::Event::Resized)
+            {
+                // update the view to the new size of the window
+                sf::FloatRect visibleArea(0, 0, event.size.width, event.size.height);
+                screenDimensions[0] = event.size.width;
+                screenDimensions[1] = event.size.height;
+                fadeRect.setSize(sf::Vector2f(screenDimensions[0], screenDimensions[1]));
+                window.setView(sf::View(visibleArea));
+            }
         }
 
         mouseBtns[0] = sf::Mouse::isButtonPressed(sf::Mouse::Left);
