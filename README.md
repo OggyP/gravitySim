@@ -37,4 +37,4 @@ The program should now work!
 
 ### Windows
 
-I have no idea how to compile this for Windows, sorry. If you know how, please let me know.
+To run on Windows go onto the releases section and download the zip file. Then extract the file and run the exe program. This is still a testing build for windows and some features may not be working fully. 
