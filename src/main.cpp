@@ -39,15 +39,15 @@ int main() {
     bool clearScreen = true;
 
     int screenDimensions[2] = {1500, 1000};
-    const double pixelToSize = 800000;
+    const double pixelToSize = 3000000;
     bool mouseBtns[2];
 
-    const int frameCap = 120;
+    const int frameCap = 180;
 
     long int currentFrame = 0;
     long int currentPhysicsUpdate = 0;
 
-    const int physicsUpdatesPerFrame = 50;
+    const int physicsUpdatesPerFrame = 40;
 
     int largestPlanetNum = 0;
 
